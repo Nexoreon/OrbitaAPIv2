@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const mainController_1 = require("../controllers/mainController");
+const authController_1 = require("../controllers/authController");
+const router = (0, express_1.Router)();
+router.get('/app/getAppData', authController_1.protect, mainController_1.getAppData);
+router.get('/app/search', authController_1.protect, mainController_1.searchData);
+router.get('/moderation', authController_1.protect, (0, authController_1.restrictTo)('Администратор'), mainController_1.getModerationData);
+router.delete('/moderation/deleteMany', authController_1.protect, (0, authController_1.restrictTo)('Администратор'), mainController_1.moderationDeleteMany);
+router.post('/upload/img', authController_1.protect, mainController_1.uploadImage, mainController_1.returnImage);
+exports.default = router;

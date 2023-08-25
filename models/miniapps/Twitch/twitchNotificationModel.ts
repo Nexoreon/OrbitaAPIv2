@@ -2,16 +2,16 @@ import { Types, Schema } from 'mongoose';
 import remoteDB from '../../../remoteDB';
 
 export interface ITwitchNotification {
-    _doc: object,
-    createdAt: Date,
-    sendOut: Date,
-    title: string,
-    content: string,
-    image: string,
-    link: string,
-    receivers: Types.ObjectId[],
-    readBy: Types.ObjectId[],
-    hiddenFor: Types.ObjectId[],
+    _doc: object;
+    createdAt: Date;
+    sendOut: Date;
+    title: string;
+    content: string;
+    image: string;
+    link: string;
+    receivers: Types.ObjectId[];
+    readBy: Types.ObjectId[];
+    hiddenFor: Types.ObjectId[];
 }
 
 const twitchNotificationSchema: Schema<ITwitchNotification> = new Schema({

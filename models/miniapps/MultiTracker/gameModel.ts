@@ -2,26 +2,26 @@ import mongoose from 'mongoose';
 import slugify from 'slugify';
 
 interface IGame {
-    id: number,
-    url: string,
-    name: string,
-    description: string,
-    releaseDate: Date,
-    rating: number,
-    review: string,
+    id: number;
+    url: string;
+    name: string;
+    description: string;
+    releaseDate: Date;
+    rating: number;
+    review: string;
     image: {
-        box: string,
-        logo: string,
-        background: string
-    },
-    status: string,
-    list: string[],
+        box: string;
+        logo: string;
+        background: string;
+    };
+    status: string;
+    list: string[];
     flags: {
-        pinned: boolean,
-        favorite: boolean
-    },
-    updatedAt: Date,
-    addedAt: Date
+        pinned: boolean;
+        favorite: boolean;
+    };
+    updatedAt: Date;
+    addedAt: Date;
 }
 
 const gameSchema: mongoose.Schema<IGame> = new mongoose.Schema({

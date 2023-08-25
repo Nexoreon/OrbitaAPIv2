@@ -3,13 +3,13 @@ import { Types, Schema, model } from 'mongoose';
 import slugify from 'slugify';
 
 export interface IDocumentSection {
-    guideId: Types.ObjectId,
-    anchor: string,
-    title: string,
+    guideId: Types.ObjectId;
+    anchor: string;
+    title: string;
     meta: {
-        createdAt: Date,
-        updatedAt: Date,
-    },
+        createdAt: Date;
+        updatedAt: Date;
+    };
 }
 
 const documentSectionSchema: Schema<IDocumentSection> = new Schema({

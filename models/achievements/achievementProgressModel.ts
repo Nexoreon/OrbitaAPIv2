@@ -1,12 +1,12 @@
 import { Types, Schema, model } from 'mongoose';
 
 interface IAchievementProgress {
-    achievementId: Types.ObjectId,
-    userId: Types.ObjectId,
-    progress: number,
-    points: number,
-    received: boolean,
-    startedAt: Date,
+    achievementId: Types.ObjectId;
+    userId: Types.ObjectId;
+    progress: number;
+    points: number;
+    received: boolean;
+    startedAt: Date;
 }
 
 const achievementProgressSchema: Schema<IAchievementProgress> = new Schema({

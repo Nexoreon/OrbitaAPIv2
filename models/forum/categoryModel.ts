@@ -3,26 +3,26 @@ import mongoose from 'mongoose';
 import slugify from 'slugify';
 
 export interface ICategory {
-    name: string,
-    description: string,
-    section: string,
-    parentId: mongoose.Types.ObjectId,
+    name: string;
+    description: string;
+    section: string;
+    parentId: mongoose.Types.ObjectId;
     icon: {
-        name: string,
-        type: string,
-        color: string,
-        background: string,
-        img?: string,
-    },
+        name: string;
+        type: string;
+        color: string;
+        background: string;
+        img?: string;
+    };
     flags: {
-        allowSubCategories: boolean,
-        isLink: boolean
-    },
+        allowSubCategories: boolean;
+        isLink: boolean;
+    };
     link: string,
-    subCategories: mongoose.Types.ObjectId[],
-    topics: mongoose.Types.ObjectId[],
-    createdAt: Date,
-    url: string
+    subCategories: mongoose.Types.ObjectId[];
+    topics: mongoose.Types.ObjectId[];
+    createdAt: Date;
+    url: string;
 }
 
 const categorySchema: mongoose.Schema<ICategory> = new mongoose.Schema({

@@ -1,21 +1,21 @@
 import { Schema, model } from 'mongoose';
 
 export interface IStory {
-    title: string,
-    img: string,
-    width: number,
+    title: string;
+    img: string;
+    width: number;
     modal: {
-        title: string,
-        text: string,
-    },
+        title: string;
+        text: string;
+    };
     button: {
-        label: string,
-        link: string,
-    },
-    visible: boolean,
-    showAt: Date,
-    hideAt: Date,
-    createdAt: Date,
+        label: string;
+        link: string;
+    };
+    visible: boolean;
+    showAt: Date;
+    hideAt: Date;
+    createdAt: Date;
 }
 
 const storySchema: Schema<IStory> = new Schema({

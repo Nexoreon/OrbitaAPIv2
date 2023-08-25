@@ -1,11 +1,11 @@
 import { Schema, model } from 'mongoose';
 
 export interface ISpotifyPlaylist {
-    id: string,
-    name: string,
-    image: string,
-    uri: string,
-    addedAt: Date
+    id: string;
+    name: string;
+    image: string;
+    uri: string;
+    addedAt: Date;
 }
 
 const spotifyPlaylistSchema: Schema<ISpotifyPlaylist> = new Schema({

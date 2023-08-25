@@ -2,30 +2,30 @@ import { Types, Schema } from 'mongoose';
 import remoteDB from '../../../remoteDB';
 
 export interface ITwitchWatchlist {
-    id: string,
-    relatedTo: Types.ObjectId,
-    platform: string,
-    title: string,
-    author: string,
-    url: string,
-    thumbnail: string,
+    id: string;
+    relatedTo: Types.ObjectId;
+    platform: string;
+    title: string;
+    author: string;
+    url: string;
+    thumbnail: string;
     meta: {
-        streamDate: Date,
-        followers: number,
-    },
-    games: string[],
-    priority: number,
-    notes: string,
-    duration: string,
+        streamDate: Date;
+        followers: number;
+    };
+    games: string[];
+    priority: number;
+    notes: string;
+    duration: string;
     flags: {
-        isAvailable: boolean,
-        isSuggestion: boolean,
-        isShortTerm: boolean,
-        watchLater: boolean,
-    },
-    sortDate: Date,
-    addedAt: Date,
-    updatedAt: Date,
+        isAvailable: boolean;
+        isSuggestion: boolean;
+        isShortTerm: boolean;
+        watchLater: boolean;
+    };
+    sortDate: Date;
+    addedAt: Date;
+    updatedAt: Date;
 }
 
 const twitchWatchlistSchema: Schema<ITwitchWatchlist> = new Schema({

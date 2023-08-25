@@ -1,22 +1,22 @@
 import { Schema, model } from 'mongoose';
 
 interface IAchievement {
-    name: string,
-    description: string,
-    image: string,
-    background: string,
-    category: string,
-    tags: string[],
-    pointsRequired: number,
+    name: string;
+    description: string;
+    image: string;
+    background: string;
+    category: string;
+    tags: string[];
+    pointsRequired: number;
     reward: {
-        points: number,
-        xp: number,
-    },
+        points: number;
+        xp: number;
+    };
     flags: {
-        available: boolean,
-        enableImageFrame: boolean,
-    },
-    createdAt: Date,
+        available: boolean;
+        enableImageFrame: boolean;
+    };
+    createdAt: Date;
 }
 
 const achievementSchema: Schema<IAchievement> = new Schema({

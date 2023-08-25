@@ -1,8 +1,8 @@
 import { Schema, model } from 'mongoose';
 
 interface IIcon {
-    name: string,
-    isBrand: boolean,
+    name: string;
+    isBrand: boolean;
 }
 
 const iconSchema: Schema<IIcon> = new Schema({

@@ -1,20 +1,20 @@
 import mongoose from 'mongoose';
 
 export interface INotification {
-    createdAt: Date,
-    sendOut: Date,
+    createdAt: Date;
+    sendOut: Date;
     app: {
-        name: string,
-        icon: string,
-        link: string,
-    },
-    title: string,
-    content: string,
-    image: string,
-    link: string,
-    receivers: mongoose.Types.ObjectId[],
-    readBy: mongoose.Types.ObjectId[],
-    hiddenFor: mongoose.Types.ObjectId[],
+        name: string;
+        icon: string;
+        link: string;
+    };
+    title: string;
+    content: string;
+    image: string;
+    link: string;
+    receivers: mongoose.Types.ObjectId[];
+    readBy: mongoose.Types.ObjectId[];
+    hiddenFor: mongoose.Types.ObjectId[];
 }
 
 const notificationSchema: mongoose.Schema<INotification> = new mongoose.Schema({

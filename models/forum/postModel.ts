@@ -1,16 +1,16 @@
 import { Types, Schema, model } from 'mongoose';
 
 export interface IPost {
-    authorId: Types.ObjectId,
-    data: string,
-    relatedTo: Types.ObjectId,
-    main: boolean,
+    authorId: Types.ObjectId;
+    data: string;
+    relatedTo: Types.ObjectId;
+    main: boolean;
     flags: {
-        hidden: boolean,
-        important: boolean
-    },
-    createdAt: Date,
-    updatedAt: Date
+        hidden: boolean;
+        important: boolean;
+    };
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const postSchema = new Schema<IPost>({

@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
 interface IConfiguration {
-    appId: number,
-    appName: string,
+    appId: number;
+    appName: string;
     settings: {
-        [key: string]: any
-    }
+        [key: string]: any;
+    };
 }
 
 const configurationSchema: mongoose.Schema<IConfiguration> = new mongoose.Schema({

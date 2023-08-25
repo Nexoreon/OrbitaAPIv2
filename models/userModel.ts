@@ -6,25 +6,25 @@ import validator from 'validator';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
-    _id: Types.ObjectId,
-    name: string,
-    email: string,
-    photo: string,
-    role: string,
+    _id: Types.ObjectId;
+    name: string;
+    email: string;
+    photo: string;
+    role: string;
     level: {
-        current: number,
-        xp: number,
-        xpRequired: number,
-        reward: number,
-    },
-    achievements: object[],
-    password: string,
-    passwordConfirm: string | undefined,
-    passwordChangedAt: Date | number,
-    passwordResetExpires: Date | undefined,
-    passwordResetToken: string | undefined,
-    active: boolean,
-    registeredAt: Date,
+        current: number;
+        xp: number;
+        xpRequired: number;
+        reward: number;
+    };
+    achievements: object[];
+    password: string;
+    passwordConfirm: string | undefined;
+    passwordChangedAt: Date | number;
+    passwordResetExpires: Date | undefined;
+    passwordResetToken: string | undefined;
+    active: boolean;
+    registeredAt: Date;
 }
 
 interface IUserMethods {

@@ -1,12 +1,12 @@
 import { Types, Schema, model } from 'mongoose';
 
 export interface IWordSet {
-    name: string,
-    img: string,
-    words: Types.ObjectId[],
-    owner: Types.ObjectId,
-    users: Types.ObjectId[],
-    createdAt: Date,
+    name: string;
+    img: string;
+    words: Types.ObjectId[];
+    owner: Types.ObjectId;
+    users: Types.ObjectId[];
+    createdAt: Date;
 }
 
 const wordSetSchema: Schema<IWordSet> = new Schema({

@@ -3,17 +3,17 @@ import { Schema, model } from 'mongoose';
 import slugify from 'slugify';
 
 export interface IDocument {
-    title: string,
-    url: string,
-    category: string,
+    title: string;
+    url: string;
+    category: string;
     flags: {
-        important: boolean,
-        outdated: boolean,
-    },
+        important: boolean;
+        outdated: boolean;
+    };
     meta: {
-        createdAt: Date,
-        updatedAt: Date,
-    },
+        createdAt: Date;
+        updatedAt: Date;
+    };
 }
 
 const documentSchema: Schema<IDocument> = new Schema({

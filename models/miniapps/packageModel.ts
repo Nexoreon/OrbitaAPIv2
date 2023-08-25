@@ -1,11 +1,11 @@
 import { Schema, model } from 'mongoose';
 
 interface IPackage {
-    name: string,
-    category: string,
-    description: string,
-    isDevDep: boolean,
-    addedAt: Date,
+    name: string;
+    category: string;
+    description: string;
+    isDevDep: boolean;
+    addedAt: Date;
 }
 
 const packageSchema: Schema<IPackage> = new Schema({

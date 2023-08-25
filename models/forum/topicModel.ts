@@ -3,29 +3,29 @@ import { Types, Schema, model } from 'mongoose';
 import slugify from 'slugify';
 
 export interface ITopic {
-    _id: Types.ObjectId,
-    name: string,
-    authorId: Types.ObjectId,
-    tags: string[],
+    _id: Types.ObjectId;
+    name: string;
+    authorId: Types.ObjectId;
+    tags: string[];
     flags: {
-        pinned: boolean,
-        important: boolean,
-        locked: boolean,
-        archived: boolean
-    },
+        pinned: boolean;
+        important: boolean;
+        locked: boolean;
+        archived: boolean;
+    };
     icon: {
-        name: string,
-        type: string
-    },
-    url: string,
-    posts: Types.ObjectId[],
-    postsCounter: number,
-    mainPost: Types.ObjectId,
-    importantPost: Types.ObjectId | undefined,
-    views: number,
-    parentId: Types.ObjectId,
-    createdAt: Date,
-    updatedAt: Date
+        name: string;
+        type: string;
+    };
+    url: string;
+    posts: Types.ObjectId[];
+    postsCounter: number;
+    mainPost: Types.ObjectId;
+    importantPost: Types.ObjectId | undefined;
+    views: number;
+    parentId: Types.ObjectId;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const topicSchema: Schema<ITopic> = new Schema({

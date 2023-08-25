@@ -4,11 +4,11 @@ import { NextFunction, Request, Response } from 'express';
 import AppError from '../utils/AppError';
 
 export interface IResponseError extends AppError {
-    code: number,
-    path: string,
-    value: string,
-    errmsg: string,
-    errors: { message: string }[],
+    code: number;
+    path: string;
+    value: string;
+    errmsg: string;
+    errors: { message: string }[];
 }
 
 const sendDevErrors = (err: IResponseError, res: Response) => {

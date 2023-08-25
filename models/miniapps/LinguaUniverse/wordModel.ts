@@ -1,16 +1,16 @@
 import { Types, Schema, model } from 'mongoose';
 
 export interface IWord {
-    word: string,
-    translation: string[],
-    transcription: string,
-    pronunciation: string,
-    letters: object[],
-    learned_by: Types.ObjectId[],
-    users: Types.ObjectId[],
-    wordSets: Types.ObjectId[],
-    added_by: Types.ObjectId,
-    added_at: Date,
+    word: string;
+    translation: string[];
+    transcription: string;
+    pronunciation: string;
+    letters: object[];
+    learned_by: Types.ObjectId[];
+    users: Types.ObjectId[];
+    wordSets: Types.ObjectId[];
+    added_by: Types.ObjectId;
+    added_at: Date;
 }
 
 const wordSchema: Schema<IWord> = new Schema({

@@ -3,15 +3,15 @@ import { Types, Schema, model } from 'mongoose';
 import slugify from 'slugify';
 
 export interface IGuideSectionPart {
-    guideId: Types.ObjectId,
-    sectionId: Types.ObjectId,
-    anchor: string,
-    title: string,
-    content: string,
+    guideId: Types.ObjectId;
+    sectionId: Types.ObjectId;
+    anchor: string;
+    title: string;
+    content: string;
     meta: {
-        createdAt: Date,
-        updatedAt: Date,
-    },
+        createdAt: Date;
+        updatedAt: Date;
+    };
 }
 
 const guideSectionPartSchema: Schema<IGuideSectionPart> = new Schema({

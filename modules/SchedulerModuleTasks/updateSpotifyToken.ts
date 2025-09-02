@@ -30,7 +30,7 @@ const getAuthToken = async (refreshToken: string) => {
         headers: {
             Accept: 'application/json',
             'Content-Type': 'application/x-www-form-urlencoded', // Обязательно должно быть закодировано в этот тип данных
-            Authorization: 'Basic YmU3OGVlMTk5YmRiNDc4MGE5ZjZhMDFjNTRlMTdiMTA6OGQ1MGVjOGEyMWE3NDVlZjg4NDI0MzIyZTk3ZjU5MGQ',
+            Authorization: process.env.SPOTIFY_TOKEN!,
         },
     }).catch(async (err) => {
         console.log(chalk.red('[Spotify Library]: Ошибка получения обновленного токена. Возможно refreshToken истёк'), err.response.data);

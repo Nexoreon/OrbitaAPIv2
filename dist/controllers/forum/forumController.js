@@ -9,6 +9,7 @@ const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
 const categoryModel_1 = __importDefault(require("../../models/forum/categoryModel"));
 const topicModel_1 = __importDefault(require("../../models/forum/topicModel"));
 const postModel_1 = __importDefault(require("../../models/forum/postModel"));
+// allowed sections ['Общее', 'Разделы проекта', 'Оборудование', 'Обучение', 'Другое'];
 exports.getForumData = (0, catchAsync_1.default)(async (req, res) => {
     const categories = await categoryModel_1.default.aggregate([
         {
@@ -79,6 +80,22 @@ exports.getForumData = (0, catchAsync_1.default)(async (req, res) => {
         },
         {
             $unset: ['temp'],
+        },
+        {
+            $group: {
+                _id: '$section',
+                items: { $push: '$$CURRENT' },
+            },
+        },
+        {
+            $project: {
+                _id: 0,
+                section: '$_id',
+                items: 1,
+            },
+        },
+        {
+            $sort: { 'items.createdAt': 1 },
         },
     ]);
     res.status(200).json({

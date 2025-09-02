@@ -32,23 +32,27 @@ exports.getAchievements = (0, catchAsync_1.default)(async (req, res) => {
 exports.getAchievement = (0, catchAsync_1.default)(async (req, res, next) => {
     const { achievementId } = req.params;
     const { _id: userId } = req.user;
-    const achievement = await achievementModel_1.default.aggregate([
+    let achievement;
+    const checkProgress = await achievementModel_1.default.aggregate([
         { $match: { _id: new mongoose_1.Types.ObjectId(achievementId) } },
-        { $lookup: {
-                from: 'achievements_progress',
-                let: { achievementId: '$_id', userId },
-                pipeline: [
-                    { $match: { $expr: { $eq: ['$achievementId', '$$achievementId'] }, userId } },
-                ],
-                as: 'completion',
-            } },
-        { $unwind: { path: '$completion', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+        { $match: { 'user.userId': userId } },
     ]);
-    if (!achievement.length)
+    if (!checkProgress.length) {
+        achievement = await achievementModel_1.default.findById(achievementId).select({ user: 0 });
+    }
+    else {
+        achievement = await achievementModel_1.default.aggregate([
+            { $match: { _id: new mongoose_1.Types.ObjectId(achievementId) } },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+            { $match: { 'user.userId': userId } },
+        ]);
+    }
+    if (!achievement || Array.isArray(achievement) && !achievement.length)
         return next(sendError404);
     res.status(200).json({
         status: 'ok',
-        data: achievement[0],
+        data: Array.isArray(achievement) && achievement[0] || achievement,
     });
 });
 exports.updateAchievement = (0, catchAsync_1.default)(async (req, res, next) => {
@@ -78,39 +82,39 @@ exports.getUserAchievements = (0, catchAsync_1.default)(async (req, res) => {
     const { category, status } = req.query;
     let statusQuery = {};
     if (status === 'received')
-        statusQuery = { 'completion.received': true };
+        statusQuery = { 'user.progress': 100 };
     if (status === 'notReceived')
-        statusQuery = { $or: [{ completion: { $exists: false } }, { 'completion.received': false }] };
+        statusQuery = { $or: [{ 'user.progress': { $exists: false } }, { 'user.progress': { $lt: 100 } }] };
     if (status === 'inProcess')
-        statusQuery = { $and: [{ 'completion.progress': { $gt: 0 } }, { 'completion.received': false }] };
+        statusQuery = { $and: [{ 'user.progress': { $gt: 0 } }, { 'user.progress': { $ne: 100 } }] };
     const query = {
         ...(category && { category }),
         'flags.available': true,
     };
     const achievements = await achievementModel_1.default.aggregate([
         { $match: query },
-        { $lookup: {
-                from: 'achievements_progress',
-                let: { achievementId: '$_id' },
-                pipeline: [
-                    { $match: { userId, $expr: { $eq: ['$achievementId', '$$achievementId'] } } },
-                ],
-                as: 'completion',
-            } },
-        { $unwind: { path: '$completion', preserveNullAndEmptyArrays: true } },
+        { $match: status ? { 'user.userId': userId } : {} },
         { $match: statusQuery },
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+        { $match: { 'user.userId': userId } },
     ]);
-    const total = achievements.length;
-    const categoriesItems = await achievementModel_1.default.aggregate([
-        { $project: { category: 1 } },
+    const noStatsAchievements = await achievementModel_1.default.aggregate([
+        { $match: { ...query, 'user.userId': { $ne: userId } } },
+        { $match: statusQuery },
+        { $project: { user: 0 } },
     ]);
-    const categories = [...new Set(categoriesItems.map((item) => item.category))];
+    const total = achievements.length + noStatsAchievements.length;
+    const categories = await achievementModel_1.default.aggregate([
+        { $group: { _id: null, categories: { $addToSet: '$category' } } },
+        { $sort: { categories: -1 } },
+        { $project: { _id: 0, categories: 1 } },
+    ]);
     res.status(200).json({
         status: 'ok',
         data: {
             total,
-            items: achievements,
-            categories,
+            items: [...noStatsAchievements, ...achievements],
+            categories: categories[0].categories,
         },
     });
 });

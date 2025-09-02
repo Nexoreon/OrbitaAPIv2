@@ -30,7 +30,7 @@ export const getUser = catchAsync(async (req, res, next) => {
 
 export const getMyProfile = catchAsync(async (req, res) => {
     const { _id: userId } = req.user!;
-    const user = await User.findById(userId, { photo: 1, name: 1, level: 1 });
+    const user = await User.findById(userId, { photo: 1, name: 1, email: 1, level: 1 });
     const unreadNotifications = await Notification.countDocuments({
         receivers: { $in: userId },
         hiddenFor: { $ne: userId },

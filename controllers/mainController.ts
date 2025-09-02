@@ -32,7 +32,9 @@ export const getAppData = catchAsync(async (req, res) => {
 });
 
 export const searchData = catchAsync(async (req, res) => {
-    const { query } = req.query;
+    const { query, offsets } = req.query;
+    const decodedOffsets = (offsets as string).split(',').map((n: string) => +n);
+    console.log(decodedOffsets);
 
     // Get topics
     const inTopics = await Topic.aggregate([
@@ -116,6 +118,9 @@ export const searchData = catchAsync(async (req, res) => {
                 ],
                 as: 'parent',
             },
+        },
+        {
+            $limit: decodedOffsets[1],
         },
         {
             $set: { parent: { $mergeObjects: '$parent' } },
@@ -211,7 +216,7 @@ const storage = multer.diskStorage({
 });
 
 const multerFilter = (req: Request, file: any, cb: any) => {
-    if (file.mimetype.startsWith('image')) {
+    if (file.mimetype.startsWith('image') || file.mimetype.startsWith('video')) {
         cb(null, true);
     } else {
         return cb(new AppError('Файл не является изображением!', 400), false);

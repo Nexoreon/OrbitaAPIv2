@@ -24,7 +24,7 @@ exports.getGames = (0, catchAsync_1.default)(async (req, res) => {
         ...(search && { name: { $regex: search, $options: 'i' } }),
         ...(!['all', 'favorite'].includes(status) && { status }),
         ...(status === 'favorite' && { 'flags.favorite': true }),
-        ...(list && { list: { $in: list } }),
+        ...(list !== 'any' && { list: { $in: list } }),
     };
     const games = await gameModel_1.default.find(searchQuery)
         .sort(sort ? { 'flags.pinned': -1, [sort]: sort !== 'name' ? -1 : 1 } : { 'flags.pinned': -1, addedAt: -1 })

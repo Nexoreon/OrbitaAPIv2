@@ -41,12 +41,13 @@ exports.getUserWordSets = (0, catchAsync_1.default)(async (req, res) => {
 });
 exports.getUserWordSet = (0, catchAsync_1.default)(async (req, res, next) => {
     const { id } = req.params;
+    const { limit } = req.query;
     const { _id: userId } = req.user;
     const wordSet = await wordSetModel_1.default.findById(id);
     if (!wordSet)
         return next(sendError404);
     const query = { _id: { $in: wordSet.words } };
-    const words = await wordModel_1.default.find(query).sort({ addedAt: -1 }).populate('wordSets', 'name');
+    const words = await wordModel_1.default.find(query).sort({ addedAt: -1 }).limit(+limit).populate('wordSets', 'name');
     const total = await wordModel_1.default.countDocuments(query);
     const remaining = await wordModel_1.default.countDocuments({ ...query, learned_by: { $in: [userId] } });
     const percentage = (100 / total) * remaining;

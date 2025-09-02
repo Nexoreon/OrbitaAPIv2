@@ -13,7 +13,10 @@ const spotifyTrackSchema = new mongoose_1.Schema({
     artist: String,
     duration: Date,
     img: String,
-    playlists: [Object],
+    playlists: [{
+            id: String,
+            addedAt: Date,
+        }],
     importedAt: {
         type: Date,
         default: Date.now,

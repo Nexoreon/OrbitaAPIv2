@@ -11,7 +11,7 @@ router.route('/:guideId')
     .get(authController_1.protect, guideController_1.getGuide)
     .patch(authController_1.protect, guideController_1.updateGuide)
     .delete(authController_1.protect, guideController_1.deleteGuide);
-router.post('/:guide/sections', authController_1.protect, guideController_1.createSection, guideController_1.createSectionPart);
+router.post('/:guideId/sections', authController_1.protect, guideController_1.createSection, guideController_1.createSectionPart);
 router.route('/:guideId/sections/:sectionId')
     .get(authController_1.protect, guideController_1.getSection)
     .post(authController_1.protect, guideController_1.createSectionPart)

@@ -1,5 +1,9 @@
 import { Schema, model } from 'mongoose';
 
+export interface ISpotifyTrackPlaylist {
+    id: string;
+    addedAt: Date;
+}
 export interface ISpotifyTrack {
     id: string;
     href: string;
@@ -9,7 +13,7 @@ export interface ISpotifyTrack {
     artist: string;
     duration: Date;
     img: string;
-    playlists: object[];
+    playlists: ISpotifyTrackPlaylist[];
     importedAt: Date;
 }
 
@@ -25,7 +29,10 @@ const spotifyTrackSchema: Schema<ISpotifyTrack> = new Schema({
     artist: String,
     duration: Date,
     img: String,
-    playlists: [Object],
+    playlists: [{
+        id: String,
+        addedAt: Date,
+    }],
     importedAt: {
         type: Date,
         default: Date.now,

@@ -6,7 +6,6 @@ import beamsClient from './beamsClient';
 import AppError from './AppError';
 import Notification, { INotification } from '../models/notificationModel';
 import Achievement from '../models/achievements/achievementModel';
-import AchievementProgress from '../models/achievements/achievementProgressModel';
 import User from '../models/userModel';
 
 export const toObjectId = (id: string) => new mongoose.Types.ObjectId(id);
@@ -65,43 +64,48 @@ export const updateAchievementProgress = async (uId: string | Types.ObjectId, aI
     const achievement = await Achievement.findById({ _id: achievementId });
     if (!achievement) return console.log('Такого достижения не существует!');
 
-    const findAchievement = { userId, achievementId };
-    const userProgress = await AchievementProgress.findOne(findAchievement);
-    if (userProgress?.received) return console.log('Этот пользователь уже получил это достижение ранее!');
+    const findProgress = { _id: achievementId, 'user.userId': userId };
+    const achievementProgress = await Achievement.findOne(findProgress).select({ user: 1 });
+    if (achievementProgress && achievementProgress.user[0].progress === 100) return console.log('Этот пользователь уже получил это достижение ранее!');
+    const userProgress = achievementProgress && achievementProgress.user[0];
 
     // UPDATE PROGRESS OR CREATE PROGRESS FOR THIS USER
     if (achievement.pointsRequired) {
         let points: number;
         let progress: number;
-        let received: boolean;
 
-        if (userProgress) {
-            points = userProgress.points + +addPoints > achievement.pointsRequired ? achievement.pointsRequired : userProgress.points + +addPoints;
-            progress = (100 / achievement.pointsRequired) * points;
-            received = progress >= 100;
-            if (rewardNow) {
-                points = achievement.pointsRequired;
-                progress = 100;
-                received = true;
-            }
+        const countProgress = async (newPoints?: number) => {
+            // eslint-disable-next-line no-new
+            new Promise<void>((resolve): void => {
+                points = newPoints || +addPoints;
+                progress = (100 / achievement.pointsRequired) * points;
+                if (progress > 100) progress = 100;
+                if (rewardNow) {
+                    points = achievement.pointsRequired;
+                    progress = 100;
+                }
+                if (progress === 100 && achievement.reward) updateUserProgress(userId, achievementId);
+                resolve();
+            });
+        };
 
-            await AchievementProgress.findOneAndUpdate(findAchievement, { $set: { points, progress, received } });
-            if (received && achievement.reward) updateUserProgress(userId, achievementId);
+        if (userProgress && userProgress.points) {
+            countProgress(userProgress.points + +addPoints > achievement.pointsRequired ? achievement.pointsRequired : userProgress.points + +addPoints)
+            .then(async () => {
+                await Achievement.findOneAndUpdate({ _id: achievementId, 'user.userId': userId }, {
+                    $set: { user: { userId, points, progress, ...(progress === 100 && ({ receivedAt: Date.now() })) } },
+                });
+            });
         } else {
-            points = +addPoints;
-            progress = (100 / achievement.pointsRequired) * points;
-            received = false;
-            if (rewardNow) {
-                points = achievement.pointsRequired;
-                progress = 100;
-                received = true;
-            }
-
-            await AchievementProgress.create({ achievementId, userId, points, progress, received });
-            if (received && achievement.reward) updateUserProgress(userId, achievementId);
+            countProgress()
+            .then(async () => {
+                await Achievement.findByIdAndUpdate({ _id: achievementId }, {
+                    $addToSet: { user: { userId, points, progress, ...(progress === 100 && ({ receivedAt: Date.now() })) } },
+                });
+            });
         }
     } else {
-        await AchievementProgress.create({ achievementId, userId, received: true });
+        await Achievement.findByIdAndUpdate({ _id: achievementId }, { $addToSet: { user: { userId, progress: 100, receivedAt: Date.now() } } });
         updateUserProgress(userId, achievementId);
     }
 };

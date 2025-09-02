@@ -35,7 +35,7 @@ const gameSchema = new mongoose_1.default.Schema({
     status: {
         type: String,
         required: [true, 'Укажите статус прохождения игры'],
-        enum: ['completed', 'playing', 'waiting', 'unknown'],
+        enum: ['completed', 'playing', 'next', 'waiting', 'unknown'],
     },
     list: [String],
     flags: {

@@ -25,6 +25,20 @@ const achievementSchema = new mongoose_1.Schema({
         points: Number,
         xp: Number,
     },
+    user: [{
+            userId: mongoose_1.Schema.Types.ObjectId,
+            progress: {
+                type: Number,
+                min: 0,
+                max: 100,
+            },
+            points: Number,
+            startedAt: {
+                type: Date,
+                default: Date.now(),
+            },
+            receivedAt: Date,
+        }],
     flags: {
         available: {
             type: Boolean,

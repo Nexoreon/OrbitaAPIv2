@@ -1,17 +1,22 @@
 /* eslint-disable no-unused-vars */
 
+import { AxiosError } from 'axios';
 import { NextFunction, Request, Response } from 'express';
 import AppError from '../utils/AppError';
 
-export interface IResponseError extends AppError {
+export interface IMongoDBError extends AppError {
+    index: number;
     code: number;
-    path: string;
-    value: string;
+    keyPattern: object;
+    keyValue: object;
     errmsg: string;
     errors: { message: string }[];
+    path: string;
+    value: string | undefined;
 }
+export type OperationError = IMongoDBError | AxiosError;
 
-const sendDevErrors = (err: IResponseError, res: Response) => {
+const sendDevErrors = (err: AppError, res: Response) => {
     res.status(err.statusCode).json({
         status: err.status,
         statusCode: err.statusCode,
@@ -21,7 +26,7 @@ const sendDevErrors = (err: IResponseError, res: Response) => {
     });
 };
 
-const sendProdErrors = (err: IResponseError, res: Response) => {
+const sendProdErrors = (err: AppError, res: Response) => {
     if (err.isOperational) {
         return res.status(err.statusCode).json({
             status: err.status,
@@ -35,18 +40,18 @@ const sendProdErrors = (err: IResponseError, res: Response) => {
     });
 };
 
-const handleCastErrorDB = (err: IResponseError) => {
+const handleCastErrorDB = (err: IMongoDBError) => {
     const message = `Неправильный путь для: ${err.path}. Указанный путь: ${err.value}`;
     return new AppError(message, 404);
 };
 
-const handleDuplicateFieldsDB = (err: IResponseError) => {
+const handleDuplicateFieldsDB = (err: IMongoDBError) => {
     const value = err.errmsg.match(/(["'])(\\?.)*?\1/)![0];
     const message = `Обнаружен дубликат значения: ${value}. Пожалуйста, используйте другое значение`;
     return new AppError(message, 400);
 };
 
-const handleValidationErrorDB = (err: IResponseError) => {
+const handleValidationErrorDB = (err: IMongoDBError) => {
     const errors = Object.values(err.errors).map((val) => val.message);
     const message = `Неправильно введенные данные. ${errors.join('. ')}`;
     return new AppError(message, 400);
@@ -55,7 +60,7 @@ const handleValidationErrorDB = (err: IResponseError) => {
 const handleJWTError = () => new AppError('Невалидный токен. Пожалуйста переавторизируйтесь!', 401);
 const handleJWTExpiredError = () => new AppError('Ваш токен авторизации истёк! Пожалуйста переавторизируйтесь!', 401);
 
-export default (err: IResponseError | any, req: Request, res: Response, next: NextFunction) => {
+export default (err: any, req: Request, res: Response, next: NextFunction) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
 

@@ -3,7 +3,7 @@ import axios from 'axios';
 import chalk from 'chalk';
 import Configuration from '../../models/configurationModel';
 import SpotifyPlaylist from '../../models/miniapps/SpotifyLibrary/spotifyPlaylistModel';
-import SpotifyTrack from '../../models/miniapps/SpotifyLibrary/spotifyTrackModel';
+import SpotifyTrack, { ISpotifyTrackPlaylist } from '../../models/miniapps/SpotifyLibrary/spotifyTrackModel';
 
 export default async () => {
     console.log(chalk.green('[Spotify Library]: Запуск процесса обновления плейлистов...'));
@@ -11,14 +11,12 @@ export default async () => {
     const allPlaylists = [{ id: 'favorite' }, ...playlists];
 
     const executeUpdate = async (playlistId: string) => {
-        console.log(playlistId);
-        const getToken = await Configuration.findOne({ appId: 3 }, { 'settings.token': 1 });
+        const getToken = await Configuration.findOne({ appId: 3 });
         const { token } = getToken!.settings;
         if (!token) return console.log(chalk.red('[Spotify Library]: Отсутствует токен для проведения операции! Операция была отменена'));
 
         let connectionUrl: string = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50`;
         if (playlistId === 'favorite') connectionUrl = 'https://api.spotify.com/v1/me/tracks?limit=50';
-
         let newTracks: { track: { [key: string]: any }, added_at: Date }[] = [];
 
         // Import tracks from Spotify
@@ -30,15 +28,33 @@ export default async () => {
             })
             .catch((err) => console.log('[Spotify Library]: Ошибка получения данных с сервера', err));
 
-            const { items, next } = receivedTracks!.data;
+            const { items, next: nextUrl } = receivedTracks!.data;
             newTracks = [...newTracks, ...items];
 
-            if (next) return importTracks(next);
+            if (nextUrl) return importTracks(nextUrl);
             handleTracks();
         };
 
         // Update existing track
         const updateTrack = async (trackId: string, addedAt: Date) => {
+            const track = await SpotifyTrack.findOne({ id: trackId });
+            if (!track) return;
+            const playlistExists = track.playlists.map((p: ISpotifyTrackPlaylist) => p.id).includes(playlistId);
+            const timings = track.playlists.filter((p: ISpotifyTrackPlaylist) => {
+                const test: any = new Date(p.addedAt).toISOString(); // TODO: IMPROVE
+                return test === new Date(addedAt).toISOString();
+            });
+
+            // Prevent from duplicating in the same playlist
+            if (playlistExists) {
+                if (!timings.length) {
+                    await SpotifyTrack.findOneAndUpdate({ id: trackId, 'playlists.id': playlistId }, {
+                        $set: { 'playlists.$.addedAt': addedAt },
+                    });
+                }
+                return;
+            }
+
             await SpotifyTrack.findOneAndUpdate({ id: trackId }, {
                 $addToSet: { playlists: { id: playlistId, addedAt } },
             });
@@ -78,7 +94,9 @@ export default async () => {
                 };
 
                 await SpotifyTrack.create(trackData)
-                .catch((err) => err.code === 11000 ? updateTrack(track.track.id, track.added_at) : null);
+                .catch((err) => {
+                    if (err.code === 11000) updateTrack(track.track.id, track.added_at);
+                });
             });
 
             if (oldTracks.length !== newTracks.length) findRemovedTracks(oldTracks, newTracks);

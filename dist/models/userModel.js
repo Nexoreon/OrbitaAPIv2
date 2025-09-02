@@ -19,7 +19,7 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         required: [true, 'Email адрес должен быть заполнен'],
         unique: true,
-        lowercase: true,
+        lowercase: true, // Формирует поле в lowercase
         validate: [validator_1.default.isEmail, 'Пожалуйста введите корректный Email адрес'],
     },
     photo: String,

@@ -31,7 +31,7 @@ const getAuthToken = async (refreshToken) => {
     const response = await axios_1.default.post('https://accounts.spotify.com/api/token', qs_1.default.stringify(data), {
         headers: {
             Accept: 'application/json',
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded', // Обязательно должно быть закодировано в этот тип данных
             Authorization: 'Basic YmU3OGVlMTk5YmRiNDc4MGE5ZjZhMDFjNTRlMTdiMTA6OGQ1MGVjOGEyMWE3NDVlZjg4NDI0MzIyZTk3ZjU5MGQ',
         },
     }).catch(async (err) => {

@@ -4,7 +4,7 @@ import AppError from '../../../utils/AppError';
 import catchAsync from '../../../utils/catchAsync';
 
 import SpotifyPlaylist from '../../../models/miniapps/SpotifyLibrary/spotifyPlaylistModel';
-import SpotifyTrack from '../../../models/miniapps/SpotifyLibrary/spotifyTrackModel';
+import SpotifyTrack, { ISpotifyTrackPlaylist } from '../../../models/miniapps/SpotifyLibrary/spotifyTrackModel';
 import Application from '../../../models/configurationModel';
 
 const error404 = new AppError('Такого плейлиста не существует!', 404);
@@ -85,7 +85,7 @@ export const updatePlaylist = catchAsync(async (req, res, next) => {
                 Authorization: `Bearer ${token}`,
             },
         })
-        .catch((err) => console.log('Ошибка получения плейлиста от Spotify!', err));
+        .catch((err) => console.log('Ошибка получения плейлиста от Spotify!', err.response));
 
         const { items, next: nextUrl } = receivedTracks!.data;
         newTracks = [...newTracks, ...items];
@@ -96,6 +96,24 @@ export const updatePlaylist = catchAsync(async (req, res, next) => {
 
     // Update existing track
     const updateTrack = async (trackId: string, addedAt: Date) => {
+        const track = await SpotifyTrack.findOne({ id: trackId });
+        if (!track) return;
+        const playlistExists = track.playlists.map((p: ISpotifyTrackPlaylist) => p.id).includes(playlistId);
+        const timings = track.playlists.filter((p: ISpotifyTrackPlaylist) => {
+            const test: any = new Date(p.addedAt).toISOString(); // TODO: IMPROVE
+            return test === new Date(addedAt).toISOString();
+        });
+
+        // Prevent from duplicating in the same playlist
+        if (timings.length) {
+            if (!timings.length) {
+                return SpotifyTrack.findOneAndUpdate({ id: trackId, 'playlists.id': playlistId }, {
+                    $set: { 'playlists.$.addedAt': addedAt },
+                });
+            }
+            return;
+        }
+
         await SpotifyTrack.findOneAndUpdate({ id: trackId }, {
             $addToSet: { playlists: { id: playlistId, addedAt } },
         });
@@ -135,7 +153,9 @@ export const updatePlaylist = catchAsync(async (req, res, next) => {
             };
 
             await SpotifyTrack.create(trackData)
-            .catch((err) => err.code === 11000 ? updateTrack(track.track.id, track.added_at) : null);
+            .catch((err) => {
+                if (err.code === 11000) updateTrack(track.track.id, track.added_at);
+            });
         });
 
         if (oldTracks.length !== newTracks.length) findRemovedTracks(oldTracks, newTracks);

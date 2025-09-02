@@ -1,6 +1,6 @@
-import { Schema, model } from 'mongoose';
+import { Schema, Types, model } from 'mongoose';
 
-interface IAchievement {
+export interface IAchievement {
     name: string;
     description: string;
     image: string;
@@ -12,6 +12,13 @@ interface IAchievement {
         points: number;
         xp: number;
     };
+    user: {
+        userId: Types.ObjectId;
+        progress: number;
+        points: number | undefined;
+        startedAt: Date;
+        receivedAt: Date;
+    }[];
     flags: {
         available: boolean;
         enableImageFrame: boolean;
@@ -43,6 +50,20 @@ const achievementSchema: Schema<IAchievement> = new Schema({
         points: Number,
         xp: Number,
     },
+    user: [{
+        userId: Schema.Types.ObjectId,
+        progress: {
+            type: Number,
+            min: 0,
+            max: 100,
+        },
+        points: Number,
+        startedAt: {
+            type: Date,
+            default: Date.now(),
+        },
+        receivedAt: Date,
+    }],
     flags: {
         available: {
             type: Boolean,

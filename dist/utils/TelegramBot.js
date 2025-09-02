@@ -6,5 +6,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const node_telegram_bot_api_1 = __importDefault(require("node-telegram-bot-api"));
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new node_telegram_bot_api_1.default(token, { polling: true });
-bot.stopPolling();
 exports.default = bot;

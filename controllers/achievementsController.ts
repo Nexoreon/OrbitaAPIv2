@@ -1,9 +1,10 @@
-import { Types } from 'mongoose';
+import { PipelineSource } from 'stream';
+import { Document, Types } from 'mongoose';
 import { sendError, updateAchievementProgress } from '../utils/common';
 import catchAsync from '../utils/catchAsync';
-import Achievement from '../models/achievements/achievementModel';
+import Achievement, { IAchievement } from '../models/achievements/achievementModel';
 import AchievementProgress from '../models/achievements/achievementProgressModel';
-import { IResponseError } from './errorHandler';
+import { IMongoDBError } from './errorHandler';
 
 // possible errors
 const sendError404 = sendError('Такого достижения не существует!', 404);
@@ -34,24 +35,28 @@ export const getAchievement = catchAsync(async (req, res, next) => {
     const { achievementId } = req.params;
     const { _id: userId } = req.user!;
 
-    const achievement = await Achievement.aggregate([
+    let achievement: PipelineSource<IAchievement> | Document<IAchievement>;
+    const checkProgress = await Achievement.aggregate([
         { $match: { _id: new Types.ObjectId(achievementId) } },
-        { $lookup: {
-            from: 'achievements_progress',
-            let: { achievementId: '$_id', userId },
-            pipeline: [
-                { $match: { $expr: { $eq: ['$achievementId', '$$achievementId'] }, userId } },
-            ],
-            as: 'completion',
-        } },
-        { $unwind: { path: '$completion', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+        { $match: { 'user.userId': userId } },
     ]);
 
-    if (!achievement.length) return next(sendError404);
+    if (!checkProgress.length) {
+        achievement = await Achievement.findById(achievementId).select({ user: 0 });
+    } else {
+        achievement = await Achievement.aggregate([
+            { $match: { _id: new Types.ObjectId(achievementId) } },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+            { $match: { 'user.userId': userId } },
+        ]);
+    }
+
+    if (!achievement || Array.isArray(achievement) && !achievement.length) return next(sendError404);
 
     res.status(200).json({
         status: 'ok',
-        data: achievement[0],
+        data: Array.isArray(achievement) && achievement[0] || achievement,
     });
 });
 
@@ -85,9 +90,9 @@ export const getUserAchievements = catchAsync(async (req, res) => {
     const { category, status } = req.query;
     let statusQuery: object = {};
 
-    if (status === 'received') statusQuery = { 'completion.received': true };
-    if (status === 'notReceived') statusQuery = { $or: [{ completion: { $exists: false } }, { 'completion.received': false }] };
-    if (status === 'inProcess') statusQuery = { $and: [{ 'completion.progress': { $gt: 0 } }, { 'completion.received': false }] };
+    if (status === 'received') statusQuery = { 'user.progress': 100 };
+    if (status === 'notReceived') statusQuery = { $or: [{ 'user.progress': { $exists: false } }, { 'user.progress': { $lt: 100 } }] };
+    if (status === 'inProcess') statusQuery = { $and: [{ 'user.progress': { $gt: 0 } }, { 'user.progress': { $ne: 100 } }] };
 
     const query = {
         ...(category && { category }),
@@ -96,30 +101,30 @@ export const getUserAchievements = catchAsync(async (req, res) => {
 
     const achievements = await Achievement.aggregate([
         { $match: query },
-        { $lookup: {
-            from: 'achievements_progress',
-            let: { achievementId: '$_id' },
-            pipeline: [
-                { $match: { userId, $expr: { $eq: ['$achievementId', '$$achievementId'] } } },
-            ],
-            as: 'completion',
-        } },
-        { $unwind: { path: '$completion', preserveNullAndEmptyArrays: true } },
-        { $match: statusQuery! },
+        { $match: status ? { 'user.userId': userId } : {} },
+        { $match: statusQuery },
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+        { $match: { 'user.userId': userId } },
     ]);
-    const total = achievements.length;
+    const noStatsAchievements = await Achievement.aggregate([
+        { $match: { ...query, 'user.userId': { $ne: userId } } },
+        { $match: statusQuery },
+        { $project: { user: 0 } },
+    ]);
+    const total = achievements.length + noStatsAchievements.length;
 
-    const categoriesItems = await Achievement.aggregate([
-        { $project: { category: 1 } },
+    const categories = await Achievement.aggregate([
+        { $group: { _id: null, categories: { $addToSet: '$category' } } },
+        { $sort: { categories: -1 } },
+        { $project: { _id: 0, categories: 1 } },
     ]);
-    const categories = [...new Set(categoriesItems.map((item) => item.category))];
 
     res.status(200).json({
         status: 'ok',
         data: {
             total,
-            items: achievements,
-            categories,
+            items: [...noStatsAchievements, ...achievements],
+            categories: categories[0].categories,
         },
     });
 });
@@ -134,7 +139,7 @@ export const updateProgress = catchAsync(async (req, res) => {
             message: 'Прогресс достижения успешно обновлён для этого пользователя!',
         });
     })
-    .catch((err: IResponseError) => {
+    .catch((err: IMongoDBError) => {
         res.status(err.code).json({
             status: 'fail',
             message: 'Ошибка во время обновления прогресса достижения!',

@@ -14,8 +14,7 @@ exports.default = async () => {
     const playlists = await spotifyPlaylistModel_1.default.find({}, { id: 1 });
     const allPlaylists = [{ id: 'favorite' }, ...playlists];
     const executeUpdate = async (playlistId) => {
-        console.log(playlistId);
-        const getToken = await configurationModel_1.default.findOne({ appId: 3 }, { 'settings.token': 1 });
+        const getToken = await configurationModel_1.default.findOne({ appId: 3 });
         const { token } = getToken.settings;
         if (!token)
             return console.log(chalk_1.default.red('[Spotify Library]: Отсутствует токен для проведения операции! Операция была отменена'));
@@ -31,14 +30,31 @@ exports.default = async () => {
                 },
             })
                 .catch((err) => console.log('[Spotify Library]: Ошибка получения данных с сервера', err));
-            const { items, next } = receivedTracks.data;
+            const { items, next: nextUrl } = receivedTracks.data;
             newTracks = [...newTracks, ...items];
-            if (next)
-                return importTracks(next);
+            if (nextUrl)
+                return importTracks(nextUrl);
             handleTracks();
         };
         // Update existing track
         const updateTrack = async (trackId, addedAt) => {
+            const track = await spotifyTrackModel_1.default.findOne({ id: trackId });
+            if (!track)
+                return;
+            const playlistExists = track.playlists.map((p) => p.id).includes(playlistId);
+            const timings = track.playlists.filter((p) => {
+                const test = new Date(p.addedAt).toISOString(); // TODO: IMPROVE
+                return test === new Date(addedAt).toISOString();
+            });
+            // Prevent from duplicating in the same playlist
+            if (playlistExists) {
+                if (!timings.length) {
+                    await spotifyTrackModel_1.default.findOneAndUpdate({ id: trackId, 'playlists.id': playlistId }, {
+                        $set: { 'playlists.$.addedAt': addedAt },
+                    });
+                }
+                return;
+            }
             await spotifyTrackModel_1.default.findOneAndUpdate({ id: trackId }, {
                 $addToSet: { playlists: { id: playlistId, addedAt } },
             });
@@ -74,7 +90,10 @@ exports.default = async () => {
                     playlists: [{ id: playlistId, addedAt: track.added_at }],
                 };
                 await spotifyTrackModel_1.default.create(trackData)
-                    .catch((err) => err.code === 11000 ? updateTrack(track.track.id, track.added_at) : null);
+                    .catch((err) => {
+                    if (err.code === 11000)
+                        updateTrack(track.track.id, track.added_at);
+                });
             });
             if (oldTracks.length !== newTracks.length)
                 findRemovedTracks(oldTracks, newTracks);

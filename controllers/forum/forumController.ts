@@ -4,6 +4,7 @@ import Category from '../../models/forum/categoryModel';
 import Topic, { ITopic } from '../../models/forum/topicModel';
 import Post, { IPost } from '../../models/forum/postModel';
 
+// allowed sections ['Общее', 'Разделы проекта', 'Оборудование', 'Обучение', 'Другое'];
 export const getForumData = catchAsync(async (req, res) => {
     const categories = await Category.aggregate([
         {
@@ -74,6 +75,22 @@ export const getForumData = catchAsync(async (req, res) => {
         },
         {
             $unset: ['temp'],
+        },
+        {
+            $group: {
+                _id: '$section',
+                items: { $push: '$$CURRENT' },
+            },
+        },
+        {
+            $project: {
+                _id: 0,
+                section: '$_id',
+                items: 1,
+            },
+        },
+        {
+            $sort: { 'items.createdAt': 1 },
         },
     ]);
 

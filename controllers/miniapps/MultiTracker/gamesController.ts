@@ -22,7 +22,7 @@ export const getGames = catchAsync(async (req, res) => {
         ...(search && { name: { $regex: search, $options: 'i' } }),
         ...(!['all', 'favorite'].includes(status as string) && { status }),
         ...(status === 'favorite' && { 'flags.favorite': true }),
-        ...(list && { list: { $in: list } }),
+        ...(list !== 'any' && { list: { $in: list } }),
     };
 
     const games = await Game.find(searchQuery)

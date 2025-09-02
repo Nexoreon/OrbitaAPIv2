@@ -53,7 +53,7 @@ exports.getAuthToken = (0, catchAsync_1.default)(async (req, res, next) => {
     const response = await axios_1.default.post('https://accounts.spotify.com/api/token', qs_1.default.stringify(data), {
         headers: {
             Accept: 'application/json',
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded', // always send with this content type!
             Authorization: process.env.SPOTIFY_TOKEN,
         },
     })

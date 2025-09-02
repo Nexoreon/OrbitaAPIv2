@@ -32,7 +32,9 @@ exports.getAppData = (0, catchAsync_1.default)(async (req, res) => {
     });
 });
 exports.searchData = (0, catchAsync_1.default)(async (req, res) => {
-    const { query } = req.query;
+    const { query, offsets } = req.query;
+    const decodedOffsets = offsets.split(',').map((n) => +n);
+    console.log(decodedOffsets);
     // Get topics
     const inTopics = await topicModel_1.default.aggregate([
         {
@@ -114,6 +116,9 @@ exports.searchData = (0, catchAsync_1.default)(async (req, res) => {
                 ],
                 as: 'parent',
             },
+        },
+        {
+            $limit: decodedOffsets[1],
         },
         {
             $set: { parent: { $mergeObjects: '$parent' } },
@@ -206,7 +211,7 @@ const storage = multer_1.default.diskStorage({
     },
 });
 const multerFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image')) {
+    if (file.mimetype.startsWith('image') || file.mimetype.startsWith('video')) {
         cb(null, true);
     }
     else {

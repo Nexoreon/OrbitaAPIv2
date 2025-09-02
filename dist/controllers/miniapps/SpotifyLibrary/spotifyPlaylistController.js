@@ -80,7 +80,7 @@ exports.updatePlaylist = (0, catchAsync_1.default)(async (req, res, next) => {
                 Authorization: `Bearer ${token}`,
             },
         })
-            .catch((err) => console.log('Ошибка получения плейлиста от Spotify!', err));
+            .catch((err) => console.log('Ошибка получения плейлиста от Spotify!', err.response));
         const { items, next: nextUrl } = receivedTracks.data;
         newTracks = [...newTracks, ...items];
         if (nextUrl)
@@ -89,6 +89,23 @@ exports.updatePlaylist = (0, catchAsync_1.default)(async (req, res, next) => {
     };
     // Update existing track
     const updateTrack = async (trackId, addedAt) => {
+        const track = await spotifyTrackModel_1.default.findOne({ id: trackId });
+        if (!track)
+            return;
+        const playlistExists = track.playlists.map((p) => p.id).includes(playlistId);
+        const timings = track.playlists.filter((p) => {
+            const test = new Date(p.addedAt).toISOString(); // TODO: IMPROVE
+            return test === new Date(addedAt).toISOString();
+        });
+        // Prevent from duplicating in the same playlist
+        if (timings.length) {
+            if (!timings.length) {
+                return spotifyTrackModel_1.default.findOneAndUpdate({ id: trackId, 'playlists.id': playlistId }, {
+                    $set: { 'playlists.$.addedAt': addedAt },
+                });
+            }
+            return;
+        }
         await spotifyTrackModel_1.default.findOneAndUpdate({ id: trackId }, {
             $addToSet: { playlists: { id: playlistId, addedAt } },
         });
@@ -124,7 +141,10 @@ exports.updatePlaylist = (0, catchAsync_1.default)(async (req, res, next) => {
                 playlists: [{ id: playlistId, addedAt: track.added_at }],
             };
             await spotifyTrackModel_1.default.create(trackData)
-                .catch((err) => err.code === 11000 ? updateTrack(track.track.id, track.added_at) : null);
+                .catch((err) => {
+                if (err.code === 11000)
+                    updateTrack(track.track.id, track.added_at);
+            });
         });
         if (oldTracks.length !== newTracks.length)
             findRemovedTracks(oldTracks, newTracks);

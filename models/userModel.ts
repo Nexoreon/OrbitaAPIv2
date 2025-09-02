@@ -21,7 +21,7 @@ export interface IUser extends Document {
     password: string;
     passwordConfirm: string | undefined;
     passwordChangedAt: Date | number;
-    passwordResetExpires: Date | undefined;
+    passwordResetExpires: Date | number | undefined;
     passwordResetToken: string | undefined;
     active: boolean;
     registeredAt: Date;
@@ -136,7 +136,7 @@ userSchema.methods.correctPassword = async function (candidatePassword: string, 
 
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp: number) {
     if (this.passwordChangedAt) {
-        const changedTimestamp = parseInt(`${this.passwordChangedAt.getTime() / 1000}`, 10);
+        const changedTimestamp = parseInt(`${(this.passwordChangedAt as Date).getTime() / 1000}`, 10);
         return JWTTimestamp < changedTimestamp;
     }
 

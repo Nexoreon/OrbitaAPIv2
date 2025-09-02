@@ -27,7 +27,7 @@ router.route('/:guideId')
 .patch(protect, updateGuide)
 .delete(protect, deleteGuide);
 
-router.post('/:guide/sections', protect, createSection, createSectionPart);
+router.post('/:guideId/sections', protect, createSection, createSectionPart);
 
 router.route('/:guideId/sections/:sectionId')
 .get(protect, getSection)
